@@ -44,20 +44,19 @@ struct MainAppView: View {
                 .tag(Tab.settings)
         }
         .accentColor(user.color)
-//        .onAppear {
-////            checkUserStreak()
-//        }
+        .onAppear {
+            checkUserStreak()
+        }
     }
 
     // Function to check and reset the streak if necessary
-//    private func checkUserStreak() {
-//        if let lastStreakDate = user.streakDates.last {
-//            if Calendar.current.dateComponents([.day], from: lastStreakDate, to: Date()).day ?? 0 > 1 {
-//                user.streakDates.removeAll()
-//                saveUserData()
-//            }
-//        }
-//    }
+    private func checkUserStreak() {
+        if let lastStreakDate = user.streakDates.last {
+            if Calendar.current.dateComponents([.day], from: lastStreakDate, to: Date()).day ?? 0 > 1 {
+                user.streakDates.removeAll()
+            }
+        }
+    }
 
     // Save user data to persist changes
     private func saveUserData() {

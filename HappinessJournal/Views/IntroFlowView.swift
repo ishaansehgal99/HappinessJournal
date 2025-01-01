@@ -9,6 +9,7 @@ import SwiftUI
 
 struct IntroFlowView: View {
     @ObservedObject private var viewModel = IntroPageViewModel()
+    @ObservedObject private var user = User.sharedUser // Observe the User singleton
     @ObservedObject var appState: AppState
 
     var body: some View {
@@ -17,8 +18,8 @@ struct IntroFlowView: View {
                 IntroPageView(
                     pageData: viewModel.pages[index],
                     userName: Binding(
-                        get: { viewModel.userName },
-                        set: { viewModel.userName = $0 }
+                        get: { user.name }, // Directly update the User singleton
+                        set: { user.name = $0 }
                     ),
                     isLastPage: index == viewModel.pages.count - 1,
                     appState: appState
@@ -27,7 +28,7 @@ struct IntroFlowView: View {
             }
         }
         .tabViewStyle(PageTabViewStyle())
-        .onChange(of: viewModel.userName) { oldValue, newValue in
+        .onChange(of: user.name) { oldValue, newValue in
             print("User name updated from \(oldValue) to \(newValue)")
         }
     }
