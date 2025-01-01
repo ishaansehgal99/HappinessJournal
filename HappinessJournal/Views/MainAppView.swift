@@ -70,68 +70,6 @@ enum Tab: Hashable {
     case entry, calendar, history, profile, settings
 }
 
-// Placeholder Views for Tabs
-struct EntryView: View {
-    var body: some View {
-        VStack {
-            Text("What went well today?")
-                .font(.headline)
-                .padding()
-            Spacer()
-            // Dynamic entry fields can be added here
-        }
-    }
-}
-
-struct CalendarView: View {
-    var body: some View {
-        VStack {
-            Text("Calendar")
-                .font(.headline)
-                .padding()
-            Spacer()
-            // Calendar functionality can be added here
-        }
-    }
-}
-
-struct HistoryView: View {
-    var body: some View {
-        VStack {
-            Text("History")
-                .font(.headline)
-                .padding()
-            Spacer()
-            // History-related features can be added here
-        }
-    }
-}
-
-struct ProfileView: View {
-    var body: some View {
-        VStack {
-            Text("Profile")
-                .font(.headline)
-                .padding()
-            Spacer()
-            // Profile details can be displayed here
-        }
-    }
-}
-
-struct SettingsView: View {
-    var body: some View {
-        VStack {
-            Text("Settings")
-                .font(.headline)
-                .padding()
-            Spacer()
-            // Settings options can be added here
-        }
-    }
-}
-
-
 #Preview {
     MainAppView()
 }
