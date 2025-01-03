@@ -13,6 +13,10 @@ struct Day: Codable {
     init(entries: [String]) {
         self.entries = entries
     }
+    
+    var isComplete: Bool {
+        return entries.allSatisfy { !$0.isEmpty }
+    }
 
     func encode() -> Data? {
         try? JSONEncoder().encode(self)
