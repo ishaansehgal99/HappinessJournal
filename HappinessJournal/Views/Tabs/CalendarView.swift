@@ -31,13 +31,14 @@ struct CalendarView: View {
                         Image(systemName: "chevron.left")
                             .font(.title2)
                             .foregroundColor(.blue)
+                            .frame(width: 40, height: 40) // Ensures consistent button size
                     }
-                    .padding(.horizontal, 20)
 
                     Button(action: { changeMonth(by: 1) }) {
                         Image(systemName: "chevron.right")
                             .font(.title2)
                             .foregroundColor(.blue)
+                            .frame(width: 40, height: 40) // Ensures consistent button size
                     }
                 }
             }
@@ -64,15 +65,14 @@ struct CalendarView: View {
                             dayPressed(day: day)
                         }) {
                             Text("\(day)")
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .padding(10)
+                                .frame(width: 40, height: 40) // Ensures consistent cell size
                                 .background(buttonBackground(for: day))
                                 .cornerRadius(8)
                                 .foregroundColor(buttonTextColor(for: day))
                         }
                     } else {
                         Text("") // Empty cell for alignment
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .frame(width: 40, height: 40) // Matches the size of the calendar cells
                     }
                 }
             }
@@ -82,6 +82,10 @@ struct CalendarView: View {
         }
         .padding()
         .background(Color.blue.opacity(0.2).edgesIgnoringSafeArea(.all))
+        .onChange(of: currentDate) { oldDate, currentDate in
+            // Force the view to refresh when the date changes
+            print("Month changed to: \(currentDate)")
+        }
     }
     
     // MARK: - Helper Methods
@@ -99,7 +103,9 @@ struct CalendarView: View {
     }
     
     private func changeMonth(by months: Int) {
-        currentDate = Calendar.current.date(byAdding: .month, value: months, to: currentDate) ?? currentDate
+        withAnimation {
+            currentDate = Calendar.current.date(byAdding: .month, value: months, to: currentDate) ?? currentDate
+        }
     }
     
     private func dayPressed(day: Int) {
