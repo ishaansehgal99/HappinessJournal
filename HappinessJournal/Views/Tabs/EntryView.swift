@@ -60,7 +60,9 @@ struct EntryView: View {
                             .background(Color.white)
                             .cornerRadius(10)
                             .shadow(radius: 2)
-                            .onChange(of: entries[index]) { _ in saveEntries() }
+                            .onChange(of: entries[index]) { oldValue, newValue in
+                                saveEntries()
+                            }
                     }
                     .padding(.horizontal)
                 }
