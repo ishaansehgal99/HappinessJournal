@@ -32,7 +32,7 @@ struct CalendarView: View {
                             .font(.title2)
                             .foregroundColor(.blue)
                     }
-                    .padding(.trailing, 20)
+                    .padding(.horizontal, 20)
 
                     Button(action: { changeMonth(by: 1) }) {
                         Image(systemName: "chevron.right")
@@ -43,16 +43,20 @@ struct CalendarView: View {
             }
             .padding(.top, 40)
 
-            // Calendar grid
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 10) {
-                // Weekday labels
+            // Weekday labels
+            HStack(spacing: 10) {
                 ForEach(weekdays, id: \.self) { day in
                     Text(day)
                         .font(.caption)
                         .fontWeight(.bold)
                         .foregroundColor(.gray)
+                        .frame(maxWidth: .infinity) // Equal spacing
                 }
-                
+            }
+            .padding(.horizontal, 10)
+
+            // Calendar grid
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 10) {
                 // Day buttons
                 ForEach(daysInMonth(), id: \.self) { day in
                     if let day = day {
