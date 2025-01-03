@@ -1,12 +1,22 @@
+//
+//  EntryView.swift
+//  HappinessJournal
+//
+//  Created by Ishaan Sehgal on 12/31/24.
+//
+
+
 import SwiftUI
 
 struct EntryView: View {
+    var date: Date // Accepts a specific date to display entries
     @ObservedObject private var user = User.sharedUser
     @State private var entries: [String]
     @State private var currentDate = Date()
 
-    init() {
-        _entries = State(initialValue: EntryView.getEntries(for: Date()))
+    init(date: Date) {
+        self.date = date
+        _entries = State(initialValue: EntryView.getEntries(for: date))
     }
 
     var body: some View {
@@ -18,7 +28,7 @@ struct EntryView: View {
                     .fontWeight(.semibold)
                     .foregroundColor(.blue)
                 
-                Text(currentDate, style: .date)
+                Text(date, style: .date)
                     .font(.title3)
                     .foregroundColor(.blue)
                 
@@ -103,5 +113,5 @@ struct EntryView: View {
 }
 
 #Preview {
-    EntryView()
+    EntryView(date: Date())
 }

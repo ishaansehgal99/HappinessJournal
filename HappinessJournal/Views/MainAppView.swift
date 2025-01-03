@@ -25,7 +25,7 @@ struct MainAppView: View {
                 }
                 .tag(Tab.history)
             
-            EntryView()
+            EntryView(date: Date())
                 .tabItem {
                     Label("Entry", systemImage: "book")
                 }
