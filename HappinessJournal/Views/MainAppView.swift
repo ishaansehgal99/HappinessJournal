@@ -13,12 +13,6 @@ struct MainAppView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            EntryView()
-                .tabItem {
-                    Label("Entry", systemImage: "book")
-                }
-                .tag(Tab.entry)
-
             CalendarView()
                 .tabItem {
                     Label("Calendar", systemImage: "calendar")
@@ -30,6 +24,12 @@ struct MainAppView: View {
                     Label("History", systemImage: "clock.arrow.circlepath")
                 }
                 .tag(Tab.history)
+            
+            EntryView()
+                .tabItem {
+                    Label("Entry", systemImage: "book")
+                }
+                .tag(Tab.entry)
 
             ProfileView()
                 .tabItem {
@@ -67,7 +67,7 @@ struct MainAppView: View {
 
 // Enum for tabs
 enum Tab: Hashable {
-    case entry, calendar, history, profile, settings
+    case calendar, history, entry, profile, settings
 }
 
 #Preview {
