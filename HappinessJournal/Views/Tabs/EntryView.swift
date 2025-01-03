@@ -1,82 +1,72 @@
-//
-//  EntryView.swift
-//  HappinessJournal
-//
-//  Created by Ishaan Sehgal on 12/31/24.
-//
-
 import SwiftUI
 
 struct EntryView: View {
     @ObservedObject private var user = User.sharedUser
     @State private var entries: [String]
     @State private var currentDate = Date()
-    
+
     init() {
         _entries = State(initialValue: EntryView.getEntries(for: Date()))
     }
-    
+
     var body: some View {
-        VStack(spacing: 20) {
-            // Title
-            Text("What went well today?")
-                .font(.headline)
-                .padding(.top)
-            
-            // Date Header
-            HStack {
-                Button(action: { changeDate(by: -1) }) {
-                    Image(systemName: "chevron.left")
-                        .font(.headline)
-                }
-                .disabled(!canMoveBackward())
-                
-                Spacer()
+        VStack {
+            // Header
+            VStack(spacing: 10) {
+                Text("What went well today?")
+                    .font(.largeTitle)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.blue)
                 
                 Text(currentDate, style: .date)
-                    .font(.subheadline)
+                    .font(.title3)
+                    .foregroundColor(.blue)
                 
-                Spacer()
-                
-                Button(action: { changeDate(by: 1) }) {
-                    Image(systemName: "chevron.right")
+                // Current Streak
+                HStack(spacing: 5) {
+                    Text("🔥")
+                        .font(.title3)
+                    Text("Streak: \(user.streakDates.count) days")
                         .font(.headline)
+                        .foregroundColor(.blue)
                 }
-                .disabled(!canMoveForward())
             }
-            .padding(.horizontal)
-            
-            // Entry Fields
-            ScrollView {
+            .padding(.top, 20)
+
+            Spacer() // Pushes header up
+
+            // Entry Fields with evenly spaced distribution
+            VStack(spacing: 50) {
                 ForEach(entries.indices, id: \.self) { index in
-                    HStack {
+                    HStack(spacing: 16) {
                         Image(systemName: "smiley")
                             .resizable()
                             .frame(width: 40, height: 40)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.blue)
                         
                         TextField("Press here to begin typing...", text: $entries[index])
-                            .padding(10)
+                            .padding()
+                            .frame(height: 80) // Larger text box
                             .background(Color.white)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                             .shadow(radius: 2)
                             .onChange(of: entries[index]) { oldValue, newValue in
                                 saveEntries()
                             }
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, 20)
                 }
             }
-            .padding(.vertical)
-            
-            Spacer()
+
+            Spacer() // Pushes the fields upward for even spacing
         }
-        .background(Color(.systemGray6))
+        .padding(.bottom, 80) // Prevents crowding at the bottom
+        .background(Color.blue.opacity(0.2).edgesIgnoringSafeArea(.all))
         .onAppear {
             updateEntries(for: currentDate)
         }
     }
-    
+
     private func saveEntries() {
         let dayString = EntryView.createDayString(from: currentDate)
         if !user.days.keys.contains(dayString) {
@@ -86,25 +76,16 @@ struct EntryView: View {
         }
         user.save()
     }
-    
+
     private func updateEntries(for date: Date) {
         entries = EntryView.getEntries(for: date)
     }
-    
+
     private func changeDate(by days: Int) {
         currentDate = Calendar.current.date(byAdding: .day, value: days, to: currentDate) ?? Date()
         updateEntries(for: currentDate)
     }
-    
-    private func canMoveForward() -> Bool {
-        !Calendar.current.isDateInToday(currentDate)
-    }
-    
-    private func canMoveBackward() -> Bool {
-        let daysSinceStart = user.startDate.days(from: currentDate)
-        return daysSinceStart > 1
-    }
-    
+
     static func getEntries(for date: Date) -> [String] {
         let dayString = createDayString(from: date)
         if let existingDay = User.sharedUser.days[dayString] {
@@ -113,7 +94,7 @@ struct EntryView: View {
             return Array(repeating: "", count: User.sharedUser.goal)
         }
     }
-    
+
     static func createDayString(from date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MM/dd/yyyy"
