@@ -50,7 +50,10 @@ class User: ObservableObject {
             UserDefaults.standard.set(startDate.timeIntervalSince1970, forKey: "userStartDate")
         }
     }
-    
+
+    @Published var level: Int = 1 // Default to level 1
+    @Published var xp: Int = 0 // Default to 0
+
     var goal: Int {
         didSet {
             UserDefaults.standard.set(goal, forKey: "userGoal")
@@ -58,7 +61,19 @@ class User: ObservableObject {
     }
 
     private init() {
-        // Load name
+        // Defer initialization of properties to avoid 'self' access before initialization.
+        defer {
+            // Set level and XP after initialization
+            self.level = UserDefaults.standard.integer(forKey: "userLevel")
+            if self.level == 0 { self.level = 1 } // Default to 1 if not set
+
+            self.xp = UserDefaults.standard.integer(forKey: "userXP")
+
+            // Save goal
+            self.goal = UserDefaults.standard.integer(forKey: "userGoal")
+        }
+
+        // Initialize other properties
         self.name = UserDefaults.standard.string(forKey: "userName") ?? ""
         // Load Color
         self.color = User.loadColor()
@@ -106,6 +121,8 @@ class User: ObservableObject {
 
         UserDefaults.standard.set(startDate.timeIntervalSince1970, forKey: "userStartDate")
         UserDefaults.standard.set(goal, forKey: "userGoal")
+        UserDefaults.standard.set(level, forKey: "userLevel")
+        UserDefaults.standard.set(xp, forKey: "userXP")
     }
     
     // Helper function to load color
