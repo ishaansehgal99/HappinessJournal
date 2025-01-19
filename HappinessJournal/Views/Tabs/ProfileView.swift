@@ -23,6 +23,11 @@ struct ProfileView: View {
         .sheet(isPresented: $isImagePickerPresented) {
             ImagePicker(image: $inputImage)
         }
+        .onChange(of: inputImage) { oldImage, newImage in
+            if let newImage = newImage {
+                user.saveProfileImage(newImage)
+            }
+        }
     }
 }
 
@@ -34,8 +39,8 @@ struct ProfileHeaderView: View {
     var body: some View {
         VStack {
             ZStack {
-                if let inputImage = inputImage {
-                    Image(uiImage: inputImage)
+                if let savedImage = user.profileImage {
+                    Image(uiImage: savedImage)
                         .resizable()
                         .scaledToFill()
                         .frame(width: 100, height: 100)
@@ -54,12 +59,17 @@ struct ProfileHeaderView: View {
             }
             .padding(.bottom, 10)
 
-            TextField("Enter Name", text: $user.name)
-                .font(.title2)
-                .foregroundColor(user.color)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+            TextField("Enter Name", text: Binding(
+                get: { user.name },
+                set: { newValue in
+                    user.name = newValue.isEmpty ? "Default Name" : newValue
+                }
+            ))
+            .font(.title2)
+            .foregroundColor(user.color)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 20)
+            .textFieldStyle(RoundedBorderTextFieldStyle())
         }
     }
 }

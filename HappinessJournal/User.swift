@@ -54,6 +54,20 @@ class User: ObservableObject {
     @Published var level: Int = 1 // Default to level 1
     @Published var xp: Int = 0 // Default to 0
 
+    @Published var profileImagePath: String? {
+        didSet {
+            UserDefaults.standard.set(profileImagePath, forKey: "userProfileImagePath")
+        }
+    }
+
+    var profileImage: UIImage? {
+        if let path = profileImagePath,
+           let imageData = try? Data(contentsOf: URL(fileURLWithPath: path)) {
+            return UIImage(data: imageData)
+        }
+        return nil
+    }
+
     var goal: Int {
         didSet {
             UserDefaults.standard.set(goal, forKey: "userGoal")
@@ -61,47 +75,41 @@ class User: ObservableObject {
     }
 
     private init() {
-        // Defer initialization of properties to avoid 'self' access before initialization.
+        // Defer initialization to avoid 'self' access before all stored properties are set.
         defer {
             // Set level and XP after initialization
             self.level = UserDefaults.standard.integer(forKey: "userLevel")
             if self.level == 0 { self.level = 1 } // Default to 1 if not set
 
             self.xp = UserDefaults.standard.integer(forKey: "userXP")
-
-            // Save goal
-            self.goal = UserDefaults.standard.integer(forKey: "userGoal")
+            
+            self.profileImagePath = UserDefaults.standard.string(forKey: "userProfileImagePath")
         }
 
         // Initialize other properties
         self.name = UserDefaults.standard.string(forKey: "userName") ?? ""
         // Load Color
         self.color = User.loadColor()
-        
-        // Load streaks
-        if let savedStreakDates = UserDefaults.standard.array(forKey: "userStreakDates") as? [Double] {
-            self.streakDates = savedStreakDates.map { Date(timeIntervalSince1970: $0) }
-        } else {
-            self.streakDates = []
-        }
-
-        // Load longest streak
+        self.streakDates = User.loadStreakDates()
         self.longestStreak = UserDefaults.standard.integer(forKey: "userLongestStreak")
         
         // Load days
         self.days = User.loadDays()
-        
-        // Load start date
-        if let savedStartDate = UserDefaults.standard.object(forKey: "userStartDate") as? Double {
-            self.startDate = Date(timeIntervalSince1970: savedStartDate)
-        } else {
-            self.startDate = Date() // Default to today if not set
-        }
-        
-        // Load Goal
+        self.startDate = UserDefaults.standard.object(forKey: "userStartDate") as? Date ?? Date()
         self.goal = UserDefaults.standard.integer(forKey: "userGoal") == 0 ? 3 : UserDefaults.standard.integer(forKey: "userGoal")
     }
     
+    func saveProfileImage(_ image: UIImage) {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
+        let filePath = getDocumentsDirectory().appendingPathComponent("profile.jpg")
+        try? imageData.write(to: filePath)
+        profileImagePath = filePath.path
+    }
+    
+    private func getDocumentsDirectory() -> URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+    }
+
     func save() {
         // Save all user-related data
         UserDefaults.standard.set(name, forKey: "userName")
@@ -123,6 +131,7 @@ class User: ObservableObject {
         UserDefaults.standard.set(goal, forKey: "userGoal")
         UserDefaults.standard.set(level, forKey: "userLevel")
         UserDefaults.standard.set(xp, forKey: "userXP")
+        UserDefaults.standard.set(profileImagePath, forKey: "userProfileImagePath")
     }
     
     // Helper function to load color
@@ -146,7 +155,15 @@ class User: ObservableObject {
         }
         return .blue // Default color
     }
-    
+
+    // Helper function to load streak dates
+    static func loadStreakDates() -> [Date] {
+        if let savedStreakDates = UserDefaults.standard.array(forKey: "userStreakDates") as? [Double] {
+            return savedStreakDates.map { Date(timeIntervalSince1970: $0) }
+        }
+        return []
+    }
+
     // Helper function to load days
     static func loadDays() -> [String: Day] {
         if let savedDays = UserDefaults.standard.dictionary(forKey: "userDays") as? [String: Data] {
