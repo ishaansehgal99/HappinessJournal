@@ -1,10 +1,3 @@
-//
-//  CalendarView.swift
-//  HappinessJournal
-//
-//  Created by Ishaan Sehgal on 12/31/24.
-//
-
 import SwiftUI
 
 struct CalendarView: View {
@@ -48,7 +41,7 @@ struct CalendarView: View {
 
                 // Weekday labels
                 HStack(spacing: 5) {
-                    ForEach(weekdays, id: \.self) { day in
+                    ForEach(Array(weekdays.enumerated()), id: \.0) { index, day in
                         Text(day)
                             .font(.caption)
                             .fontWeight(.bold)
@@ -59,7 +52,7 @@ struct CalendarView: View {
 
                 // Calendar grid
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 7), spacing: 10) {
-                    ForEach(daysInMonth(), id: \.self) { day in
+                    ForEach(Array(daysInMonth().enumerated()), id: \.0) { index, day in
                         if let day = day {
                             Button(action: {
                                 dayPressed(day: day)
@@ -100,6 +93,7 @@ struct CalendarView: View {
         let range = calendar.range(of: .day, in: .month, for: currentDate)!
         let firstDayOfWeek = calendar.component(.weekday, from: calendar.date(from: calendar.dateComponents([.year, .month], from: currentDate))!)
 
+        // Add empty cells for the start of the month
         var days: [Int?] = Array(repeating: nil, count: firstDayOfWeek - 1)
         days.append(contentsOf: range.map { $0 })
 
