@@ -1,11 +1,3 @@
-//
-//  EntryView.swift
-//  HappinessJournal
-//
-//  Created by Ishaan Sehgal on 12/31/24.
-//
-
-
 import SwiftUI
 
 struct EntryView: View {
@@ -13,6 +5,8 @@ struct EntryView: View {
     var day: Day? // Optional Day object to pass specific data
     @ObservedObject private var user = User.sharedUser
     @State private var entries: [String]
+    @State private var showFeedback = false // State to control feedback message visibility
+    @State private var allEntriesCompleted = false // State for all entries completion feedback
 
     init(date: Date, day: Day?) {
         self.date = date
@@ -21,58 +15,100 @@ struct EntryView: View {
     }
 
     var body: some View {
-        VStack {
-            // Header
-            VStack(spacing: 10) {
-                Text("What went well today?")
-                    .font(.largeTitle)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.blue)
-                
-                Text(date, style: .date)
-                    .font(.title3)
-                    .foregroundColor(.blue)
-                
-                // Current Streak
-                HStack(spacing: 5) {
-                    Text("🔥")
-                        .font(.title3)
-                    Text("Streak: \(user.streakDates.count) days")
-                        .font(.headline)
+        ZStack {
+            VStack {
+                // Header
+                VStack(spacing: 10) {
+                    Text("What went well today?")
+                        .font(.largeTitle)
+                        .fontWeight(.semibold)
                         .foregroundColor(.blue)
-                }
-            }
-            .padding(.top, 20)
-
-            Spacer() // Pushes header up
-
-            // Entry Fields with evenly spaced distribution
-            VStack(spacing: 50) {
-                ForEach(entries.indices, id: \.self) { index in
-                    HStack(spacing: 16) {
-                        Image(systemName: "smiley")
-                            .resizable()
-                            .frame(width: 40, height: 40)
+                    
+                    Text(date, style: .date)
+                        .font(.title3)
+                        .foregroundColor(.blue)
+                    
+                    // Current Streak
+                    HStack(spacing: 5) {
+                        Text("🔥")
+                            .font(.title3)
+                        Text("Streak: \(user.streakDates.count) days")
+                            .font(.headline)
                             .foregroundColor(.blue)
-                        
-                        TextField("Press here to begin typing...", text: $entries[index])
+                    }
+                }
+                .padding(.top, 20)
+
+                Spacer() // Pushes header up
+
+                // Entry Fields with evenly spaced distribution
+                VStack(spacing: 50) {
+                    ForEach(entries.indices, id: \.self) { index in
+                        HStack(spacing: 16) {
+                            Image(systemName: "smiley")
+                                .resizable()
+                                .frame(width: 40, height: 40)
+                                .foregroundColor(.blue)
+                            
+                            TextField("Press here to begin typing...", text: $entries[index], onCommit: {
+                                handleCompletion(for: index)
+                            })
                             .padding()
                             .frame(height: 80) // Larger text box
                             .background(Color.white)
                             .cornerRadius(12)
                             .shadow(radius: 2)
-                            .onChange(of: entries[index]) { _, _ in
-                                saveEntries()
-                            }
+                        }
+                        .padding(.horizontal, 20)
                     }
-                    .padding(.horizontal, 20)
+                }
+
+                Spacer() // Pushes the fields upward for even spacing
+            }
+            .padding(.bottom, 80) // Prevents crowding at the bottom
+            .background(Color.blue.opacity(0.2).edgesIgnoringSafeArea(.all))
+            .overlay(
+                // Feedback message overlay
+                Group {
+                    if showFeedback {
+                        Text("Entry saved!")
+                            .font(.headline)
+                            .padding()
+                            .background(Color.black.opacity(0.8))
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                            .transition(.opacity)
+                            .zIndex(1)
+                    }
+                }
+                .animation(.easeInOut(duration: 0.5), value: showFeedback)
+            )
+
+            // Completion Celebration Overlay
+            if allEntriesCompleted {
+                VStack {
+                    Text("🎉 All Entries Completed! 🎉")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(15)
+                        .shadow(radius: 10)
+
+                    Spacer()
+                }
+                .zIndex(2)
+                .transition(.scale)
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        withAnimation {
+                            allEntriesCompleted = false
+                        }
+                    }
                 }
             }
-
-            Spacer() // Pushes the fields upward for even spacing
         }
-        .padding(.bottom, 80) // Prevents crowding at the bottom
-        .background(Color.blue.opacity(0.2).edgesIgnoringSafeArea(.all))
         .onAppear {
             updateEntries(for: date)
         }
@@ -88,8 +124,26 @@ struct EntryView: View {
             user.days[dayString]?.entries = entries
         }
 
+        // Check if all entries are completed
+        if entries.allSatisfy({ !$0.isEmpty }) {
+            allEntriesCompleted = true
+        }
+
+        // Show individual entry feedback
+        showFeedback = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            showFeedback = false
+        }
+
         // Update streaks after marking the day complete
         user.updateStreaks()
+    }
+
+    private func handleCompletion(for index: Int) {
+        // Show feedback only for meaningful input
+        if entries[index].count > 0 {
+            saveEntries()
+        }
     }
 
     private func updateEntries(for date: Date) {
