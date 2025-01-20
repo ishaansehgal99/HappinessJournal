@@ -28,6 +28,9 @@ struct ProfileView: View {
                 user.saveProfileImage(newImage)
             }
         }
+        .onAppear {
+            user.updateStreaks() // Ensure streaks are updated when the view appears
+        }
     }
 }
 
@@ -119,12 +122,29 @@ struct StatsView: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            StatsRowView(title: "Current Streak", value: "\(user.streakDates.count)")
+            StatsRowView(title: "Current Streak", value: "\(calculateCurrentStreak())")
             StatsRowView(title: "Longest Streak", value: "\(user.longestStreak)")
             StatsRowView(title: "Total Completed Days", value: "\(getTotalFullDays())")
             StatsRowView(title: "Total Good Things", value: "\(getTotalGoodThings())")
         }
         .padding(.top, 20)
+    }
+    
+    private func calculateCurrentStreak() -> Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        var currentStreak = 0
+        var lastDate = today
+
+        for date in user.streakDates.reversed() {
+            if calendar.dateComponents([.day], from: date, to: lastDate).day ?? 0 <= 1 {
+                currentStreak += 1
+                lastDate = date
+            } else {
+                break
+            }
+        }
+        return currentStreak
     }
 
     private func getTotalFullDays() -> Int {

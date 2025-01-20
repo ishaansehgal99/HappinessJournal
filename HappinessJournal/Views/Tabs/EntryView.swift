@@ -85,7 +85,8 @@ struct EntryView: View {
         } else {
             user.days[dayString]?.entries = entries
         }
-        user.save()
+
+        user.updateStreaks()
     }
 
     private func updateEntries(for date: Date) {

@@ -142,6 +142,49 @@ class User: ObservableObject {
     private func getDocumentsDirectory() -> URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
     }
+    
+    func updateStreaks() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        // Ensure streakDates contains all completed days
+        for (dateString, day) in days {
+            if day.isComplete {
+                let date = User.createDate(from: dateString)
+                if !streakDates.contains(date) {
+                    streakDates.append(date)
+                }
+            }
+        }
+
+        // Ensure streakDates are sorted and remove future dates
+        streakDates = streakDates.filter { $0 <= today }.sorted()
+
+        // Calculate current streak
+        var currentStreak = 0
+        var lastDate = today
+
+        for date in streakDates.reversed() {
+            if calendar.dateComponents([.day], from: date, to: lastDate).day ?? Int.max <= 1 {
+                currentStreak += 1
+                lastDate = date
+            } else {
+                break
+            }
+        }
+
+        // Add today to streakDates if completed
+        if !streakDates.contains(today), days[EntryView.createDayString(from: today)]?.isComplete == true {
+            streakDates.append(today)
+            currentStreak += 1
+        }
+
+        // Update longest streak
+        longestStreak = max(longestStreak, currentStreak)
+
+        // Save updates
+        save()
+    }
 
     func save() {
         // Save all user-related data
@@ -191,6 +234,12 @@ class User: ObservableObject {
             }
         }
         return .blue // Default color
+    }
+    
+    static func createDate(from dateString: String) -> Date {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM/dd/yyyy"
+        return formatter.date(from: dateString) ?? Date()
     }
 
     // Helper function to load streak dates
