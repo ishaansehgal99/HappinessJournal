@@ -11,80 +11,20 @@ class User: ObservableObject {
     static let sharedUser = User()
 
     // MARK: - Published Properties
-    @Published var name: String {
-        didSet {
-            UserDefaults.standard.set(name, forKey: "userName")
-        }
-    }
+    @Published var name: String = UserDefaults.standard.string(forKey: "userName") ?? ""
+    @Published var hasReminder: Bool = UserDefaults.standard.bool(forKey: "hasReminder")
+    @Published var reminderTime: String = UserDefaults.standard.string(forKey: "userReminderTime") ?? "9:00 AM"
+    @Published var color: Color = User.loadColor()
+    @Published var boughtMulti: Bool = UserDefaults.standard.bool(forKey: "userBoughtMulti")
+    @Published var xpMultiplier: Int = UserDefaults.standard.integer(forKey: "userXPMultiplier") == 0 ? 1 : UserDefaults.standard.integer(forKey: "userXPMultiplier")
+    @Published var streakDates: [Date] = User.loadStreakDates()
+    @Published var longestStreak: Int = UserDefaults.standard.integer(forKey: "userLongestStreak")
+    @Published var days: [String: Day] = User.loadDays()
+    @Published var startDate: Date = UserDefaults.standard.object(forKey: "userStartDate") as? Date ?? Date()
+    @Published var level: Int = UserDefaults.standard.integer(forKey: "userLevel") == 0 ? 1 : UserDefaults.standard.integer(forKey: "userLevel")
+    @Published var xp: Int = UserDefaults.standard.integer(forKey: "userXP")
+    @Published var profileImagePath: String? = UserDefaults.standard.string(forKey: "userProfileImagePath")
     
-    @Published var hasReminder: Bool {
-        didSet {
-            UserDefaults.standard.set(hasReminder, forKey: "hasReminder")
-        }
-    }
-    
-    @Published var reminderTime: String {
-        didSet {
-            UserDefaults.standard.set(reminderTime, forKey: "userReminderTime")
-        }
-    }
-
-    @Published var color: Color {
-        didSet {
-            if let colorComponents = UIColor(color).cgColor.components {
-                let rgbaComponents = Array(colorComponents.prefix(4)) // Ensure only R, G, B, A are saved
-                UserDefaults.standard.set(rgbaComponents, forKey: "userColor")
-            }
-        }
-    }
-
-    @Published var boughtMulti: Bool {
-        didSet {
-            UserDefaults.standard.set(boughtMulti, forKey: "userBoughtMulti")
-        }
-    }
-
-    @Published var xpMultiplier: Int {
-        didSet {
-            UserDefaults.standard.set(xpMultiplier, forKey: "userXPMultiplier")
-        }
-    }
-
-    @Published var streakDates: [Date] {
-        didSet {
-            let encodedStreaks = streakDates.map { $0.timeIntervalSince1970 }
-            UserDefaults.standard.set(encodedStreaks, forKey: "userStreakDates")
-        }
-    }
-
-    @Published var longestStreak: Int {
-        didSet {
-            UserDefaults.standard.set(longestStreak, forKey: "userLongestStreak")
-        }
-    }
-    
-    @Published var days: [String: Day] {
-        didSet {
-            let encodedDays = days.mapValues { $0.encode() }
-            UserDefaults.standard.set(encodedDays, forKey: "userDays")
-        }
-    }
-    
-    @Published var startDate: Date {
-        didSet {
-            UserDefaults.standard.set(startDate.timeIntervalSince1970, forKey: "userStartDate")
-        }
-    }
-
-    @Published var level: Int = 1
-    @Published var xp: Int = 0
-
-    @Published var profileImagePath: String? {
-        didSet {
-            UserDefaults.standard.set(profileImagePath, forKey: "userProfileImagePath")
-        }
-    }
-
     var profileImage: UIImage? {
         if let path = profileImagePath,
            let imageData = try? Data(contentsOf: URL(fileURLWithPath: path)) {
@@ -93,71 +33,27 @@ class User: ObservableObject {
         return nil
     }
 
-    var goal: Int {
-        didSet {
-            UserDefaults.standard.set(goal, forKey: "userGoal")
-        }
-    }
+    var goal: Int = UserDefaults.standard.integer(forKey: "userGoal") == 0 ? 3 : UserDefaults.standard.integer(forKey: "userGoal")
 
     // MARK: - Initialization
-    private init() {
-        // Defer initialization to avoid 'self' access before all stored properties are set.
-        defer {
-            // Set level and XP after initialization
-            self.level = UserDefaults.standard.integer(forKey: "userLevel")
-            if self.level == 0 { self.level = 1 } // Default to 1 if not set
-
-            self.xp = UserDefaults.standard.integer(forKey: "userXP")
-            
-            self.profileImagePath = UserDefaults.standard.string(forKey: "userProfileImagePath")
-        }
-
-        // Initialize other properties
-        self.name = UserDefaults.standard.string(forKey: "userName") ?? ""
-        // Load Color
-        self.color = User.loadColor()
-        self.streakDates = User.loadStreakDates()
-        self.longestStreak = UserDefaults.standard.integer(forKey: "userLongestStreak")
-        
-        // Load days
-        self.days = User.loadDays()
-        self.startDate = UserDefaults.standard.object(forKey: "userStartDate") as? Date ?? Date()
-        self.goal = UserDefaults.standard.integer(forKey: "userGoal") == 0 ? 3 : UserDefaults.standard.integer(forKey: "userGoal")
-        
-        self.hasReminder = UserDefaults.standard.bool(forKey: "hasReminder")
-        self.reminderTime = UserDefaults.standard.string(forKey: "userReminderTime") ?? "9:00 AM"
-        self.boughtMulti = UserDefaults.standard.bool(forKey: "userBoughtMulti")
-        self.xpMultiplier = UserDefaults.standard.integer(forKey: "userXPMultiplier")
-        if self.xpMultiplier == 0 { self.xpMultiplier = 1 }
-    }
-
-    // MARK: - Save Functions
-    func saveProfileImage(_ image: UIImage) {
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
-        let filePath = getDocumentsDirectory().appendingPathComponent("profile.jpg")
-        try? imageData.write(to: filePath)
-        profileImagePath = filePath.path
-    }
+    private init() {}
     
-    private func getDocumentsDirectory() -> URL {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-    }
+    // MARK: - Public Methods
     
+    /// Update streak data based on completed days
     func updateStreaks() {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-
-        // Ensure streakDates contains all completed days
-        for (dateString, day) in days {
-            if day.isComplete {
-                let date = User.createDate(from: dateString)
-                if !streakDates.contains(date) {
-                    streakDates.append(date)
-                }
+        
+        // Add all completed days to streakDates
+        for (dateString, day) in days where day.isComplete {
+            let date = User.createDate(from: dateString)
+            if !streakDates.contains(date) {
+                streakDates.append(date)
             }
         }
-
-        // Ensure streakDates are sorted and remove future dates
+        
+        // Filter out future dates and sort
         streakDates = streakDates.filter { $0 <= today }.sorted()
 
         // Calculate current streak
@@ -178,6 +74,9 @@ class User: ObservableObject {
             streakDates.append(today)
             currentStreak += 1
         }
+        
+        // Add XP for the current streak
+        addXP(currentStreak * 10)
 
         // Update longest streak
         longestStreak = max(longestStreak, currentStreak)
@@ -185,55 +84,75 @@ class User: ObservableObject {
         // Save updates
         save()
     }
-
+    
+    /// Save user-related data
     func save() {
-        // Save all user-related data
-        UserDefaults.standard.set(name, forKey: "userName")
-
+        let defaults = UserDefaults.standard
+        
+        defaults.set(name, forKey: "userName")
+        defaults.set(hasReminder, forKey: "hasReminder")
+        defaults.set(reminderTime, forKey: "userReminderTime")
+        defaults.set(boughtMulti, forKey: "userBoughtMulti")
+        defaults.set(xpMultiplier, forKey: "userXPMultiplier")
+        defaults.set(longestStreak, forKey: "userLongestStreak")
+        defaults.set(level, forKey: "userLevel")
+        defaults.set(xp, forKey: "userXP")
+        defaults.set(startDate.timeIntervalSince1970, forKey: "userStartDate")
+        defaults.set(goal, forKey: "userGoal")
+        
         if let colorComponents = UIColor(color).cgColor.components {
-            let rgbaComponents = Array(colorComponents.prefix(4)) // Ensure only R, G, B, A are saved
-            UserDefaults.standard.set(rgbaComponents, forKey: "userColor")
+            defaults.set(Array(colorComponents.prefix(4)), forKey: "userColor")
         }
-
+        
+        if let profileImagePath = profileImagePath {
+            defaults.set(profileImagePath, forKey: "userProfileImagePath")
+        }
+        
         let encodedStreaks = streakDates.map { $0.timeIntervalSince1970 }
-        UserDefaults.standard.set(encodedStreaks, forKey: "userStreakDates")
-
-        UserDefaults.standard.set(longestStreak, forKey: "userLongestStreak")
-
+        defaults.set(encodedStreaks, forKey: "userStreakDates")
+        
         let encodedDays = days.mapValues { $0.encode() }
-        UserDefaults.standard.set(encodedDays, forKey: "userDays")
-
-        UserDefaults.standard.set(startDate.timeIntervalSince1970, forKey: "userStartDate")
-        UserDefaults.standard.set(goal, forKey: "userGoal")
-        UserDefaults.standard.set(level, forKey: "userLevel")
-        UserDefaults.standard.set(xp, forKey: "userXP")
-        UserDefaults.standard.set(profileImagePath, forKey: "userProfileImagePath")
-        UserDefaults.standard.set(hasReminder, forKey: "hasReminder")
-        UserDefaults.standard.set(reminderTime, forKey: "userReminderTime")
-        UserDefaults.standard.set(boughtMulti, forKey: "userBoughtMulti")
-        UserDefaults.standard.set(xpMultiplier, forKey: "userXPMultiplier")
+        defaults.set(encodedDays, forKey: "userDays")
     }
+    
+    /// Save profile image
+    func saveProfileImage(_ image: UIImage) {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
+        let filePath = getDocumentsDirectory().appendingPathComponent("profile.jpg")
+        try? imageData.write(to: filePath)
+        profileImagePath = filePath.path
+    }
+    
+    // MARK: - Private Helpers
+    func addXP(_ amount: Int) {
+        xp += amount
 
-    // MARK: - Helper Functions
-    static func loadColor() -> Color {
-        if let components = UserDefaults.standard.array(forKey: "userColor") as? [CGFloat] {
-            if components.count >= 4 {
-                return Color(
-                    red: components[0],
-                    green: components[1],
-                    blue: components[2],
-                    opacity: components[3]
-                )
-            } else if components.count >= 3 {
-                return Color(
-                    red: components[0],
-                    green: components[1],
-                    blue: components[2],
-                    opacity: 1.0
-                )
-            }
+        // Check if XP exceeds the threshold for the next level
+        let xpToNextLevel = level * 20 - 10
+        if xp >= xpToNextLevel {
+            levelUp()
         }
-        return .blue // Default color
+    }
+    
+    private func levelUp() {
+        xp -= level * 20 - 10  // Carry over excess XP
+        level += 1
+    }
+    
+    private func getDocumentsDirectory() -> URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+    }
+    
+    static func loadColor() -> Color {
+        if let components = UserDefaults.standard.array(forKey: "userColor") as? [CGFloat], components.count >= 3 {
+            return Color(
+                red: components[0],
+                green: components[1],
+                blue: components[2],
+                opacity: components.count == 4 ? components[3] : 1.0
+            )
+        }
+        return .blue
     }
     
     static func createDate(from dateString: String) -> Date {
@@ -244,7 +163,8 @@ class User: ObservableObject {
 
     // Helper function to load streak dates
     static func loadStreakDates() -> [Date] {
-        if let savedStreakDates = UserDefaults.standard.array(forKey: "userStreakDates") as? [Double] {
+        let defaults = UserDefaults.standard
+        if let savedStreakDates = defaults.array(forKey: "userStreakDates") as? [Double] {
             return savedStreakDates.map { Date(timeIntervalSince1970: $0) }
         }
         return []
