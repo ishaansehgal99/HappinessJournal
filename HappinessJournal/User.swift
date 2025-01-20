@@ -10,6 +10,7 @@ import SwiftUI
 class User: ObservableObject {
     static let sharedUser = User()
 
+    // MARK: - Published Properties
     @Published var name: String {
         didSet {
             UserDefaults.standard.set(name, forKey: "userName")
@@ -34,6 +35,18 @@ class User: ObservableObject {
                 let rgbaComponents = Array(colorComponents.prefix(4)) // Ensure only R, G, B, A are saved
                 UserDefaults.standard.set(rgbaComponents, forKey: "userColor")
             }
+        }
+    }
+
+    @Published var boughtMulti: Bool {
+        didSet {
+            UserDefaults.standard.set(boughtMulti, forKey: "userBoughtMulti")
+        }
+    }
+
+    @Published var xpMultiplier: Int {
+        didSet {
+            UserDefaults.standard.set(xpMultiplier, forKey: "userXPMultiplier")
         }
     }
 
@@ -63,8 +76,8 @@ class User: ObservableObject {
         }
     }
 
-    @Published var level: Int = 1 // Default to level 1
-    @Published var xp: Int = 0 // Default to 0
+    @Published var level: Int = 1
+    @Published var xp: Int = 0
 
     @Published var profileImagePath: String? {
         didSet {
@@ -86,6 +99,7 @@ class User: ObservableObject {
         }
     }
 
+    // MARK: - Initialization
     private init() {
         // Defer initialization to avoid 'self' access before all stored properties are set.
         defer {
@@ -112,8 +126,12 @@ class User: ObservableObject {
         
         self.hasReminder = UserDefaults.standard.bool(forKey: "hasReminder")
         self.reminderTime = UserDefaults.standard.string(forKey: "userReminderTime") ?? "9:00 AM"
+        self.boughtMulti = UserDefaults.standard.bool(forKey: "userBoughtMulti")
+        self.xpMultiplier = UserDefaults.standard.integer(forKey: "userXPMultiplier")
+        if self.xpMultiplier == 0 { self.xpMultiplier = 1 }
     }
-    
+
+    // MARK: - Save Functions
     func saveProfileImage(_ image: UIImage) {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
         let filePath = getDocumentsDirectory().appendingPathComponent("profile.jpg")
@@ -149,9 +167,11 @@ class User: ObservableObject {
         UserDefaults.standard.set(profileImagePath, forKey: "userProfileImagePath")
         UserDefaults.standard.set(hasReminder, forKey: "hasReminder")
         UserDefaults.standard.set(reminderTime, forKey: "userReminderTime")
+        UserDefaults.standard.set(boughtMulti, forKey: "userBoughtMulti")
+        UserDefaults.standard.set(xpMultiplier, forKey: "userXPMultiplier")
     }
-    
-    // Helper function to load color
+
+    // MARK: - Helper Functions
     static func loadColor() -> Color {
         if let components = UserDefaults.standard.array(forKey: "userColor") as? [CGFloat] {
             if components.count >= 4 {
