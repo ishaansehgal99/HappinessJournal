@@ -35,6 +35,7 @@ struct ProfileHeaderView: View {
     @ObservedObject var user: User
     @Binding var inputImage: UIImage?
     @Binding var isImagePickerPresented: Bool
+    @State private var showNameUpdatedToast = false
 
     var body: some View {
         VStack {
@@ -63,6 +64,12 @@ struct ProfileHeaderView: View {
                 get: { user.name },
                 set: { newValue in
                     user.name = newValue.isEmpty ? "Default Name" : newValue
+                    
+                    // Show toast when name is updated
+                    showNameUpdatedToast = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        showNameUpdatedToast = false
+                    }
                 }
             ))
             .font(.title2)
@@ -70,6 +77,18 @@ struct ProfileHeaderView: View {
             .multilineTextAlignment(.center)
             .padding(.horizontal, 20)
             .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            if showNameUpdatedToast {
+                Text("Name updated!")
+                    .padding()
+                    .background(Color.black.opacity(0.7))
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .transition(.opacity)
+                    .animation(.easeInOut, value: showNameUpdatedToast)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .padding(.bottom, 50)
+            }
         }
     }
 }
