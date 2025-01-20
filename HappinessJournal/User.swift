@@ -15,6 +15,18 @@ class User: ObservableObject {
             UserDefaults.standard.set(name, forKey: "userName")
         }
     }
+    
+    @Published var hasReminder: Bool {
+        didSet {
+            UserDefaults.standard.set(hasReminder, forKey: "hasReminder")
+        }
+    }
+    
+    @Published var reminderTime: String {
+        didSet {
+            UserDefaults.standard.set(reminderTime, forKey: "userReminderTime")
+        }
+    }
 
     @Published var color: Color {
         didSet {
@@ -97,6 +109,9 @@ class User: ObservableObject {
         self.days = User.loadDays()
         self.startDate = UserDefaults.standard.object(forKey: "userStartDate") as? Date ?? Date()
         self.goal = UserDefaults.standard.integer(forKey: "userGoal") == 0 ? 3 : UserDefaults.standard.integer(forKey: "userGoal")
+        
+        self.hasReminder = UserDefaults.standard.bool(forKey: "hasReminder")
+        self.reminderTime = UserDefaults.standard.string(forKey: "userReminderTime") ?? "9:00 AM"
     }
     
     func saveProfileImage(_ image: UIImage) {
@@ -132,6 +147,8 @@ class User: ObservableObject {
         UserDefaults.standard.set(level, forKey: "userLevel")
         UserDefaults.standard.set(xp, forKey: "userXP")
         UserDefaults.standard.set(profileImagePath, forKey: "userProfileImagePath")
+        UserDefaults.standard.set(hasReminder, forKey: "hasReminder")
+        UserDefaults.standard.set(reminderTime, forKey: "userReminderTime")
     }
     
     // Helper function to load color
