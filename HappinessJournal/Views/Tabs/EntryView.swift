@@ -80,12 +80,15 @@ struct EntryView: View {
 
     private func saveEntries() {
         let dayString = EntryView.createDayString(from: date)
+
+        // Check if the day exists in the user's data
         if !user.days.keys.contains(dayString) {
             user.days[dayString] = Day(entries: entries)
         } else {
             user.days[dayString]?.entries = entries
         }
 
+        // Update streaks after marking the day complete
         user.updateStreaks()
     }
 
