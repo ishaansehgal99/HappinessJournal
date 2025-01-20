@@ -27,7 +27,7 @@ struct MainAppView: View {
             
             EntryView(date: Date())
                 .tabItem {
-                    Label("Entry", systemImage: "book")
+                    Label("Journal", systemImage: "book")
                 }
                 .tag(Tab.entry)
 
