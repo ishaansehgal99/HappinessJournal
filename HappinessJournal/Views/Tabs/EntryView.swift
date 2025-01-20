@@ -10,13 +10,14 @@ import SwiftUI
 
 struct EntryView: View {
     var date: Date // Accepts a specific date to display entries
+    var day: Day? // Optional Day object to pass specific data
     @ObservedObject private var user = User.sharedUser
     @State private var entries: [String]
-    @State private var currentDate = Date()
 
-    init(date: Date) {
+    init(date: Date, day: Day?) {
         self.date = date
-        _entries = State(initialValue: EntryView.getEntries(for: date))
+        self.day = day
+        _entries = State(initialValue: day?.entries ?? EntryView.getEntries(for: date))
     }
 
     var body: some View {
@@ -60,7 +61,7 @@ struct EntryView: View {
                             .background(Color.white)
                             .cornerRadius(12)
                             .shadow(radius: 2)
-                            .onChange(of: entries[index]) { oldValue, newValue in
+                            .onChange(of: entries[index]) { _, _ in
                                 saveEntries()
                             }
                     }
@@ -73,12 +74,12 @@ struct EntryView: View {
         .padding(.bottom, 80) // Prevents crowding at the bottom
         .background(Color.blue.opacity(0.2).edgesIgnoringSafeArea(.all))
         .onAppear {
-            updateEntries(for: currentDate)
+            updateEntries(for: date)
         }
     }
 
     private func saveEntries() {
-        let dayString = EntryView.createDayString(from: currentDate)
+        let dayString = EntryView.createDayString(from: date)
         if !user.days.keys.contains(dayString) {
             user.days[dayString] = Day(entries: entries)
         } else {
@@ -88,21 +89,12 @@ struct EntryView: View {
     }
 
     private func updateEntries(for date: Date) {
-        entries = EntryView.getEntries(for: date)
-    }
-
-    private func changeDate(by days: Int) {
-        currentDate = Calendar.current.date(byAdding: .day, value: days, to: currentDate) ?? Date()
-        updateEntries(for: currentDate)
+        entries = day?.entries ?? EntryView.getEntries(for: date)
     }
 
     static func getEntries(for date: Date) -> [String] {
         let dayString = createDayString(from: date)
-        if let existingDay = User.sharedUser.days[dayString] {
-            return existingDay.entries
-        } else {
-            return Array(repeating: "", count: User.sharedUser.goal)
-        }
+        return User.sharedUser.days[dayString]?.entries ?? Array(repeating: "", count: User.sharedUser.goal)
     }
 
     static func createDayString(from date: Date) -> String {
@@ -113,5 +105,9 @@ struct EntryView: View {
 }
 
 #Preview {
-    EntryView(date: Date())
+    let today = Date()
+    let dayString = EntryView.createDayString(from: today)
+    let day = User.sharedUser.days[dayString] ?? Day(entries: Array(repeating: "", count: User.sharedUser.goal))
+
+    return EntryView(date: today, day: day)
 }

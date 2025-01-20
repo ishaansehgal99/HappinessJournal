@@ -80,7 +80,9 @@ struct CalendarView: View {
             }
             .navigationDestination(isPresented: $navigateToEntryView) {
                 if let selectedDate = selectedDate {
-                    EntryView(date: selectedDate) // Navigate to EntryView
+                    let dayString = EntryView.createDayString(from: selectedDate)
+                    let selectedDay = user.days[dayString] // Fetch the `Day` object
+                    EntryView(date: selectedDate, day: selectedDay) // Pass the `Day` object
                 }
             }
         }
@@ -107,9 +109,15 @@ struct CalendarView: View {
     }
 
     private func dayPressed(day: Int) {
-        let selectedDate = Calendar.current.date(bySetting: .day, value: day, of: currentDate) ?? currentDate
-        self.selectedDate = selectedDate
-        self.navigateToEntryView = true // Trigger navigation
+        var components = Calendar.current.dateComponents([.year, .month], from: currentDate)
+        components.day = day // Safely set the day component
+
+        if let selectedDate = Calendar.current.date(from: components) {
+            self.selectedDate = selectedDate
+            self.navigateToEntryView = true // Trigger navigation
+        } else {
+            print("Error: Unable to create a valid date from the given components")
+        }
     }
 
     private func buttonBackground(for day: Int) -> Color {

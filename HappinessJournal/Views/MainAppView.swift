@@ -25,11 +25,15 @@ struct MainAppView: View {
                 }
                 .tag(Tab.history)
             
-            EntryView(date: Date())
-                .tabItem {
-                    Label("Journal", systemImage: "book")
-                }
-                .tag(Tab.entry)
+            EntryView(
+                date: Date(),
+                day: user.days[EntryView.createDayString(from: Date())] ??
+                    Day(entries: Array(repeating: "", count: user.goal))
+            )
+            .tabItem {
+                Label("Journal", systemImage: "book")
+            }
+            .tag(Tab.entry)
 
             ProfileView()
                 .tabItem {
