@@ -29,7 +29,7 @@ struct HistoryView: View {
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal, 20)
-            .onChange(of: selectedFilter) { _ in
+            .onChange(of: selectedFilter) { _,_ in
                 filterEntries()
             }
 
